@@ -56,7 +56,7 @@ def binary_to_text(binary_data):
         if byte == "11111110":  # End delimiter
             break
         message += chr(int(byte, 2))
-    return message
+    return message[:-1]
 
 def decode_message(image_path):
     binary_data = extract_binary(image_path)

@@ -3,11 +3,13 @@ import React, { useState } from 'react';
 const SteganographyTool = () => {
     const [image, setImage] = useState<File | null>(null);
     const [message, setMessage] = useState('');
-    const [outputPath, setOutputPath] = useState('');
     const [decodedMessage, setDecodedMessage] = useState('');
 
     const handleEncode = async () => {
-        if (!image || !message) return alert('Please provide an image and a message.');
+        if (!image || !message) {
+            alert('Please provide an image and a message.');
+            return;
+        }
 
         const formData = new FormData();
         formData.append('image', image);
@@ -27,13 +29,16 @@ const SteganographyTool = () => {
                 alert(`Error: ${data.message}`);
             }
         } catch (error) {
-            console.error(error);
+            console.error('Encode error:', error);
             alert('Failed to encode message.');
         }
     };
 
     const handleDecode = async () => {
-        if (!image) return alert('Please provide an image.');
+        if (!image) {
+            alert('Please provide an image.');
+            return;
+        }
 
         const formData = new FormData();
         formData.append('image', image);
@@ -51,7 +56,7 @@ const SteganographyTool = () => {
                 alert(`Error: ${data.message}`);
             }
         } catch (error) {
-            console.error(error);
+            console.error('Decode error:', error);
             alert('Failed to decode message.');
         }
     };
@@ -64,19 +69,19 @@ const SteganographyTool = () => {
                     Select Image:
                     <input type="file" onChange={(e) => setImage(e.target.files?.[0] || null)} />
                 </label>
-            </div>
-            <div>
                 <label>
                     Message to Encode:
                     <input type="text" value={message} onChange={(e) => setMessage(e.target.value)} />
                 </label>
-            </div>
-            <div>
-                <button onClick={handleEncode}>Encode Message</button>
-                <button onClick={handleDecode}>Decode Message</button>
+                <button onClick={handleEncode} disabled={!image || !message}>
+                    Encode Message
+                </button>
+                <button onClick={handleDecode} disabled={!image}>
+                    Decode Message
+                </button>
             </div>
             {decodedMessage && (
-                <div>
+                <div className="decoded-message">
                     <h2>Decoded Message:</h2>
                     <p>{decodedMessage}</p>
                 </div>
