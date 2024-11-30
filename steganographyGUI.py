@@ -1,3 +1,4 @@
+from tkinterdnd2 import TkinterDnD, DND_FILES
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 import steganographyBackEnd as steg
@@ -7,6 +8,12 @@ def browse_file(entry):
     filename = filedialog.askopenfilename(filetypes=[("Image files", "*.png;*.bmp")])
     entry.delete(0, tk.END)
     entry.insert(0, filename)
+
+def drag_and_drop(event, entry):
+    """Handles drag-and-drop events to populate file paths."""
+    file_path = event.data.strip()
+    entry.delete(0, tk.END)
+    entry.insert(0, file_path)
 
 def encode_action():
     """Handles encoding a message into an image."""
@@ -24,41 +31,20 @@ def encode_action():
 def decode_action():
     """Handles decoding a message from an image."""
     try:
-        # Get file path from the entry field
         image_path = decode_image_entry.get()
-        
-        # Check if the file path is provided
         if not image_path:
             raise ValueError("Image file is required.")
-
-        # Debug: Ensure the file path is being read
-        print(f"Decoding file: {image_path}")
-
-        # Call decode_message from the back end
         message = steg.decode_message(image_path)
-        print(message)
-
-        # Display the decoded message
-        if message.strip():
-            # Clear any previous message and update with the new one
-            decoded_message_label.config(text=f"Decoded Message:\n{message}")
-        else:
-            # Display an error message when no valid hidden message is found
-            decoded_message_label.config(text="No hidden message found.")
-
-        # Force the widget to update immediately
+        decoded_message_label.config(text=f"Decoded Message:\n{message}")
         decoded_message_label.update()
-
     except Exception as e:
-        # Display an error message box with details
-        messagebox.showerror("Error", f"Failed to decode message: {str(e)}")
+        messagebox.showerror("Error", str(e))
 
-
-# Initialize main window
-root = tk.Tk()
+# Initialize the main window with drag-and-drop support
+root = TkinterDnD.Tk()
 root.title("Steganography Tool")
 root.geometry("600x400")
-root.resizable(False, False)
+root.resizable(True, True)
 
 # Style Configuration
 style = ttk.Style()
@@ -75,6 +61,8 @@ ttk.Label(encode_frame, text="Encode Message", font=("Helvetica", 14, "bold")).g
 ttk.Label(encode_frame, text="Image File:").grid(row=1, column=0, sticky="e")
 encode_image_entry = ttk.Entry(encode_frame, width=40)
 encode_image_entry.grid(row=1, column=1)
+encode_image_entry.drop_target_register(DND_FILES)
+encode_image_entry.dnd_bind("<<Drop>>", lambda event: drag_and_drop(event, encode_image_entry))
 ttk.Button(encode_frame, text="Browse", command=lambda: browse_file(encode_image_entry)).grid(row=1, column=2)
 
 ttk.Label(encode_frame, text="Message:").grid(row=2, column=0, sticky="ne")
@@ -98,19 +86,13 @@ ttk.Label(decode_frame, text="Decode Message", font=("Helvetica", 14, "bold")).g
 ttk.Label(decode_frame, text="Image File:").grid(row=1, column=0, sticky="e")
 decode_image_entry = ttk.Entry(decode_frame, width=40)
 decode_image_entry.grid(row=1, column=1)
+decode_image_entry.drop_target_register(DND_FILES)
+decode_image_entry.dnd_bind("<<Drop>>", lambda event: drag_and_drop(event, decode_image_entry))
 ttk.Button(decode_frame, text="Browse", command=lambda: browse_file(decode_image_entry)).grid(row=1, column=2)
 
-ttk.Button(decode_frame, text="Decode", command=decode_action).grid(row=0, column=1, pady=5)
-decoded_message_label = ttk.Label(
-    decode_frame,
-    text="Decoded Message: ",
-    wraplength=500,  # Allows text to wrap within 500px
-    font=("Helvetica", 10),
-    anchor="w",      # Aligns text to the left
-    justify="left"   # Justifies text for readability
-)
+ttk.Button(decode_frame, text="Decode", command=decode_action).grid(row=2, column=1, pady=5)
+decoded_message_label = ttk.Label(decode_frame, text="Decoded Message: ", wraplength=500, font=("Helvetica", 10), anchor="w", justify="left")
 decoded_message_label.grid(row=3, column=0, columnspan=3, pady=10, sticky="w")
-
 
 # Run the main loop
 root.mainloop()
